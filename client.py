@@ -12,14 +12,20 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-d",
                     "--destination",
                     type=str,
-                    help="IP of remote server, to send commands to",
+                    help="IP of remote server to send commands to",
                     required=True)
 
 parser.add_argument("-p",
                     "--port",
                     type=str,
-                    help="Port of remote host",
-                    required=True)                        
+                    help="Port of remote host to send commands to",
+                    required=True)
+
+parser.add_argument("-s",
+                    "--sniff",
+                    type=str,
+                    help="Port to sniff incoming packets from the remote server",
+                    required=True)
 
 global args
 args = parser.parse_args()
@@ -53,7 +59,7 @@ def main():
             sys.exit()
 
         send_command(args.destination, args.port, data)
-        sniff(filter="ip and tcp and host 192.168.1.81", count=1, prn=display_output)
+        sniff(filter=f"ip and tcp and host {args.destination} and dst port {args.sniff}", count=1, prn=display_output)
 
 
 if __name__ == "__main__":
