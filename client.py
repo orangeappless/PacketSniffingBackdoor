@@ -2,7 +2,6 @@
 
 
 from scapy.all import *
-from cryptography.fernet import Fernet
 import argparse
 import encrypt_utils as utils
 
